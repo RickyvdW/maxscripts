@@ -1,6 +1,5 @@
-/*CAT2BONE MaxScript :: Author - Ricky van den Waardenburg - 10/07/2017
-Finds nearest 1:1 mapping for bone<-CAT and applies position and rotation constraints given that bones and CAT objects are manually seperated by layers.
-::
+/*CAT2BONE MaxScript [Author: Ricky van den Waardenburg - 10/07/2017]
+Finds nearest 1:1 mapping for bone<-CAT and applies position and rotation constraints.
 Usage: select source layer containing CAT rig & target layer containing bone hierarchy and press 'apply constraints'
 */
 try(DestroyDialog catboneRollout)catch()
@@ -133,7 +132,7 @@ rollout catboneRollout "CAT2BONE" width:392
 				local currentScore = distance catObject.transform.pos boneObject.transform.pos
 
 				/*Score mapping of bone -> CAT object based distance and if the bone's center is inside the bbox or not.*/
-				if (currentScore <= bestScore) then
+				if (currentScore < bestScore) then
 				(
 					/*Get 'bone direction' (bone origin to bone center)*/
 					local boneRotation = normalize(boneObject.transform.pos - boneObject.center)
@@ -143,12 +142,12 @@ rollout catboneRollout "CAT2BONE" width:392
 
 					/*Transform bbox and bone position into bbox-space*/
 					for i in 1 to bbox.count do bbox[i] *= catRotationMatrix
-					boneCenter *= catRotationMatrix
+				    boneCenter *= catRotationMatrix
 
 					/*Check if bone position is inside bounding box*/
-					if (bbox[1].x <= boneCenter.x and boneCenter.x <= bbox[2].x) AND \
-					(bbox[1].y <= boneCenter.y and boneCenter.y <= bbox[2].y) AND \
-					(bbox[1].z <= boneCenter.z and boneCenter.z <= bbox[2].z)
+					if 	(bbox[1].x <= boneCenter.x and boneCenter.x <= bbox[2].x) AND \
+						(bbox[1].y <= boneCenter.y and boneCenter.y <= bbox[2].y) AND \
+						(bbox[1].z <= boneCenter.z and boneCenter.z <= bbox[2].z)
 					then
 					(
 						bestCATMatch = catObject
@@ -240,8 +239,8 @@ rollout catboneRollout "CAT2BONE" width:392
 			)
 			else
 			(
-				/*Otherwise create a position list, add the default controller to the list, then add the new position constraint.*/
-				local rotList = Position_List()
+				/*Otherwise create a rotation list, add the default controller to the list, then add the new orientation constraint.*/
+				local rotList = Rotation_List()
 				boneObject.rotation.controller = rotList
 				rotList[2].controller = orientationConstraint
 
@@ -265,7 +264,7 @@ rollout catboneRollout "CAT2BONE" width:392
 		redrawviews()
 
 		/*Reset progressbar*/
-		progressBar.value = 0
+	    progressBar.value = 0
 
 		messageBox "Finished applying constraints."
 		print ("[CAT2BONE] Finished applying constraints.")
