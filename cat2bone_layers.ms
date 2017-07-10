@@ -24,7 +24,9 @@ rollout catboneRollout "CAT2BONE" width:392
 	(
 		checkBox 'ignoreDummies' "Ignore dummy objects" checked:false align:#left
 		checkBox 'ignoreHubs' "Ignore hub objects" checked:false align:#left
-		spinner 'boneOffset' "Bone offset: " fieldWidth:30 type:#float range:[0,1,0.1] align:#left
+		checkBox 'disableInsideCheck' "Disable inside check" checked:false align:#left
+		/*checkBox 'ignoreFingerPositionConstraint' "Disable position constraints for finger bones" checked:false align:#left*/
+		spinner 'boneOffset' "Bone offset: " fieldWidth:30 type:#float range:[0,1,0] align:#left
 	)
 
 
@@ -48,6 +50,14 @@ rollout catboneRollout "CAT2BONE" width:392
 
 		sourceDropdownList.items = layerList
 		targetDropdownList.items = layerList
+	)
+	
+	/*Force redraw on close, just in case.*/
+	on catboneRollout close do
+	(
+		/*Re-enable scene redraw*/
+		enablesceneredraw()
+		redrawviews()
 	)
 
 	/*Update source dropdown list selection*/
@@ -144,6 +154,13 @@ rollout catboneRollout "CAT2BONE" width:392
 					for i in 1 to bbox.count do bbox[i] *= catRotationMatrix
 				    boneCenter *= catRotationMatrix
 
+					if (disableInsideCheck.checked == true) then
+					(
+						bestCATMatch = catObject
+						bestScore = currentScore
+						continue
+					)
+					
 					/*Check if bone position is inside bounding box*/
 					if 	(bbox[1].x <= boneCenter.x and boneCenter.x <= bbox[2].x) AND \
 						(bbox[1].y <= boneCenter.y and boneCenter.y <= bbox[2].y) AND \
