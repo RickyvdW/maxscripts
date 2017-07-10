@@ -1,9 +1,9 @@
 /*CAT2BONE MaxScript
-		Author: Ricky van den Waardenburg - 10/07/2017
+	Author: Ricky van den Waardenburg - 10/07/2017
 
-		Finds nearest 1:1 mapping for bone<-CAT and applies position and rotation constraints given that bones and CAT objects are manually seperated by layers.
+	Finds nearest 1:1 mapping for bone<-CAT and applies position and rotation constraints given that bones and CAT objects are manually seperated by layers.
 
-		Usage: select source layer containing CAT rig & target layer containing bone hierarchy and press 'apply constraints'
+	Usage: select source layer containing CAT rig & target layer containing bone hierarchy and press 'apply constraints'
 */
 try(DestroyDialog catboneRollout)catch()
 
@@ -267,7 +267,7 @@ rollout catboneRollout "CAT2BONE" width:392
 		redrawviews()
 
 		/*Reset progressbar*/
-	    progressBar.value = 0
+		progressBar.value = 0
 
 		messageBox "Finished applying constraints."
 		print ("[CAT2BONE] Finished applying constraints.")
