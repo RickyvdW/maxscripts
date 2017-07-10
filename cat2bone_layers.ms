@@ -10,6 +10,7 @@ rollout catboneRollout "CAT2BONE" width:392
 	/*Local variables*/
 	local selectedSourceLayer = undefined
 	local selectedTargetLayer = undefined
+	local fingerStringArray = #("mid", "ring", "pinky", "index", "finger", "thumb")
 
 	/*User interface*/
 	group "Source and target:"
@@ -24,8 +25,8 @@ rollout catboneRollout "CAT2BONE" width:392
 	(
 		checkBox 'ignoreDummies' "Ignore dummy objects" checked:false align:#left
 		checkBox 'ignoreHubs' "Ignore hub objects" checked:false align:#left
-		checkBox 'disableInsideCheck' "Disable inside check" checked:false align:#left
-		/*checkBox 'ignoreFingerPositionConstraint' "Disable position constraints for finger bones" checked:false align:#left*/
+		checkBox 'disableInsideCheck' "Disable inside check" checked:true align:#left
+		checkBox 'ignoreFingerPositionConstraint' "Disable position constraints for finger bones" checked:true align:#left
 		spinner 'boneOffset' "Bone offset: " fieldWidth:30 type:#float range:[0,1,0] align:#left
 	)
 
@@ -182,51 +183,6 @@ rollout catboneRollout "CAT2BONE" width:392
 
 			print("[CAT2BONE] Mapping bone: " + boneObject.name + " to CAT object: " + bestCATMatch.name)
 
-			/*Initialize position constraint*/
-			positionConstraint = Position_Constraint relative:true
-			positionConstraint.appendTarget bestCATMatch 50.0
-
-			posController = boneObject.position.controller
-
-			/*
-			Uncomment this for debug printing.
-			print("[CAT2BONE] Position controller class: " + (classof posController as string))
-			*/
-
-			if (classof posController == Position_List) then
-			(
-				/*Remove all position constraints from the position list and replace them with the new position constraint.*/
-				for x = 1 to posController.count do
-				(
-					/*
-					Uncomment this for debug printing.
-					print("[CAT2BONE] List element: " + (posController[x].name as string))
-					*/
-
-					if (classof posController[x].controller == Position_Constraint) then
-					(
-						posController.delete x
-					)
-				)
-
-				posController[posController.count+1].controller = positionConstraint
-			)
-			else
-			(
-				/*Otherwise create a position list, add the default controller to the list, then add the new position constraint.*/
-				local posList = Position_List()
-				boneObject.position.controller = posList
-				posList[2].controller = positionConstraint
-
-				/*
-				Uncomment this for debug printing.
-				for x = 1 to posList.count do
-				(
-					print("[CAT2BONE] List element: " + (posList[x].name as string))
-				)
-				*/
-			)
-
 			/*Initialize orientation constraint*/
 			orientationConstraint = Orientation_Constraint relative:true
 			orientationConstraint.appendTarget bestCATMatch 50.0
@@ -269,10 +225,76 @@ rollout catboneRollout "CAT2BONE" width:392
 				)
 				*/
 			)
-
+			
 			/*Update progress bar*/
 			num = num + 1
 			progressBar.value = progressPerNode * num
+			
+			if (ignoreFingerPositionConstraint.checked == true) then
+			(
+				local isFinger = false
+				
+				/*If this bone is classified as a finger -> don't apply position constraint*/
+				for fingerName in fingerStringArray do
+				(
+					if (findString boneObject.name fingerName != undefined) then 
+					(
+						isFinger = true
+					)
+				)
+				
+				/*Skip finger bone*/
+				if (isFinger == true) then
+				(	
+					print("[CAT2BONE] Not applying position constraint for finger bone: " + boneObject.name)					
+					continue
+				)
+			)
+			
+			/*Initialize position constraint*/
+			positionConstraint = Position_Constraint relative:true
+			positionConstraint.appendTarget bestCATMatch 50.0
+
+			posController = boneObject.position.controller
+
+			/*
+			Uncomment this for debug printing.
+			print("[CAT2BONE] Position controller class: " + (classof posController as string))
+			*/
+		
+			if (classof posController == Position_List) then
+			(
+				/*Remove all position constraints from the position list and replace them with the new position constraint.*/
+				for x = 1 to posController.count do
+				(
+					/*
+					Uncomment this for debug printing.
+					print("[CAT2BONE] List element: " + (posController[x].name as string))
+					*/
+
+					if (classof posController[x].controller == Position_Constraint) then
+					(
+						posController.delete x
+					)
+				)
+
+				posController[posController.count+1].controller = positionConstraint
+			)
+			else
+			(
+				/*Otherwise create a position list, add the default controller to the list, then add the new position constraint.*/
+				local posList = Position_List()
+				boneObject.position.controller = posList
+				posList[2].controller = positionConstraint
+
+				/*
+				Uncomment this for debug printing.
+				for x = 1 to posList.count do
+				(
+					print("[CAT2BONE] List element: " + (posList[x].name as string))
+				)
+				*/
+			)
 
 		)
 
