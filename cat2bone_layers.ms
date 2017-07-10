@@ -143,12 +143,12 @@ rollout catboneRollout "CAT2BONE" width:392
 
 					/*Transform bbox and bone position into bbox-space*/
 					for i in 1 to bbox.count do bbox[i] *= catRotationMatrix
-				    boneCenter *= catRotationMatrix
+					boneCenter *= catRotationMatrix
 
 					/*Check if bone position is inside bounding box*/
-					if 	(bbox[1].x <= boneCenter.x and boneCenter.x <= bbox[2].x) AND \
-						(bbox[1].y <= boneCenter.y and boneCenter.y <= bbox[2].y) AND \
-						(bbox[1].z <= boneCenter.z and boneCenter.z <= bbox[2].z)
+					if (bbox[1].x <= boneCenter.x and boneCenter.x <= bbox[2].x) AND \
+					(bbox[1].y <= boneCenter.y and boneCenter.y <= bbox[2].y) AND \
+					(bbox[1].z <= boneCenter.z and boneCenter.z <= bbox[2].z)
 					then
 					(
 						bestCATMatch = catObject
