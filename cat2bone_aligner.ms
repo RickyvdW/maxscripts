@@ -10,8 +10,7 @@ macroscript SmartBoneAligner tooltip:"CAT->Bone SmartAlign"
 	on Execute do (
 
 		/* Pick target bone/cat bone */
-		local targets = #()
-		append targets (pickObject count:2 filter:pickFilter)
+		local targets = pickObject count:2 filter:pickFilter
 		local intToAxis = #("X", "Y", "Z")
 
 		/*Early out: no targets selected..*/
@@ -23,7 +22,8 @@ macroscript SmartBoneAligner tooltip:"CAT->Bone SmartAlign"
 		/*Early out: not enough objects selected..*/
 		if targets.count < 2 then
 		(
-			messageBox "Less than two objects selected"
+			local str = "Less than two objects selected: " + (targets.count as string)
+			messageBox str
 			return false
 		)
 
