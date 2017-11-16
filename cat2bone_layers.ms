@@ -209,6 +209,8 @@ rollout catboneRollout "CAT2BONE" width:392
 					)
 				)
 				rotController[rotController.count+1].controller = orientationConstraint
+				--rotController[rotController.count+1].controller.setActive 1
+				rotController.setActive rotController.count
 			)
 			else
 			(
@@ -216,6 +218,7 @@ rollout catboneRollout "CAT2BONE" width:392
 				local rotList = Rotation_List()
 				boneObject.rotation.controller = rotList
 				rotList[2].controller = orientationConstraint
+				--rotList[2].controller.setActive 1
 
 				/*
 				Uncomment this for debug printing.
@@ -279,6 +282,7 @@ rollout catboneRollout "CAT2BONE" width:392
 				)
 
 				posController[posController.count+1].controller = positionConstraint
+				posController.setActive posController.count
 			)
 			else
 			(
@@ -286,7 +290,7 @@ rollout catboneRollout "CAT2BONE" width:392
 				local posList = Position_List()
 				boneObject.position.controller = posList
 				posList[2].controller = positionConstraint
-
+			--	posList[2].controller.setActive 1
 				/*
 				Uncomment this for debug printing.
 				for x = 1 to posList.count do
