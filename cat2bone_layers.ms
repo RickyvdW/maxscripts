@@ -5,6 +5,9 @@ Usage: select source layer containing CAT rig & target layer containing bone hie
 try(DestroyDialog catboneRollout)catch()
 
 layerList = #()
+catLayerList = #()
+boneLayerList = #()
+
 rollout catboneRollout "CAT2BONE" width:392
 (
 	/*Local variables*/
@@ -45,12 +48,31 @@ rollout catboneRollout "CAT2BONE" width:392
 			for i = 1 to LayerManager.count - 1 do (
 				layerName =  (LayerManager.getLayer i).name
 				print ("Adding layer to list: " + layerName)
-				append layerList layerName
+				layer = (LayerManager.getLayer i)
+				layer.nodes &layerNodes
+				
+				/*Check if we have valid objects in the layer*/
+				boneLayerObjects = for boneObject in layerNodes where (classof boneObject == BoneGeometry) collect boneObject
+				catLayerObjects = for catObject in layerNodes where (classof catObject == CATBone or (classof catObject == HubObject and ignoreHubs.checked == false) or (classof catObject == Dummy and ignoreDummies.checked == false)) collect catObject
+					
+				if  boneLayerObjects.count > 0 then
+				(
+					append boneLayerList layerName
+				)
+				if  catLayerObjects.count > 0 then
+				(
+					append catLayerList layerName
+				)
 			)
 		)
 
-		sourceDropdownList.items = layerList
-		targetDropdownList.items = layerList
+		sourceDropdownList.items = catLayerList
+		targetDropdownList.items = boneLayerList
+		
+		print ("Source layer:" + sourceDropdownList.selected)
+		selectedSourceLayer = sourceDropdownList.selected
+		print ("Target layer:" + targetDropdownList.selected)
+		selectedTargetLayer = targetDropdownList.selected
 	)
 	
 	/*Force redraw on close, just in case.*/
