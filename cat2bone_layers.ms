@@ -240,7 +240,7 @@ rollout catboneRollout "CAT2BONE" width:392
 				local rotList = Rotation_List()
 				boneObject.rotation.controller = rotList
 				rotList[2].controller = orientationConstraint
-				--rotList[2].controller.setActive 1
+				boneObject.rotation.controller.setActive rotList.count
 
 				/*
 				Uncomment this for debug printing.
@@ -312,6 +312,7 @@ rollout catboneRollout "CAT2BONE" width:392
 				local posList = Position_List()
 				boneObject.position.controller = posList
 				posList[2].controller = positionConstraint
+				boneObject.position.controller.setActive posList.count
 			--	posList[2].controller.setActive 1
 				/*
 				Uncomment this for debug printing.
