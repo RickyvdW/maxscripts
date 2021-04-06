@@ -1,2 +1,2 @@
 # maxscripts
-Scripts written for 3dsmax to speed up workflow
+3dsmax scripts to speed up IK-retargeting workflow.
