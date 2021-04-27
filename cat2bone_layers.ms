@@ -45,7 +45,7 @@ rollout catboneRollout "CAT2BONE" width:392
 	(
 		print ("Initializing layer dropdown lists.")
 		if (LayerManager.count > 0) then (
-			for i = 1 to LayerManager.count - 1 do (
+			for i = 0 to LayerManager.count - 1 do (
 				layerName =  (LayerManager.getLayer i).name
 				print ("Adding layer to list: " + layerName)
 				layer = (LayerManager.getLayer i)
@@ -69,10 +69,26 @@ rollout catboneRollout "CAT2BONE" width:392
 		sourceDropdownList.items = catLayerList
 		targetDropdownList.items = boneLayerList
 		
-		print ("Source layer:" + sourceDropdownList.selected)
-		selectedSourceLayer = sourceDropdownList.selected
-		print ("Target layer:" + targetDropdownList.selected)
-		selectedTargetLayer = targetDropdownList.selected
+		/*Default selected value can be undefined when a dropdown list is empty.*/
+		if sourceDropdownList.selected != undefined then 
+		(
+			print ("Source layer:" + sourceDropdownList.selected)
+			selectedSourceLayer = sourceDropdownList.selected
+		)
+		else
+		(
+			print ("[WARNING] No valid source layers found.")
+		)
+		
+		if targetDropdownList.selected != undefined then
+		(
+			print ("Target layer:" + targetDropdownList.selected)
+			selectedTargetLayer = targetDropdownList.selected
+		)
+		else
+		(
+			print ("[WARNING] No valid source layers found.")
+		)
 	)
 	
 	/*Force redraw on close, just in case.*/
