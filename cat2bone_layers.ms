@@ -8,6 +8,14 @@ layerList = #()
 catLayerList = #()
 boneLayerList = #()
 
+/*Unwraps an x-ref object if the input object has class XRefObject, otherwise return the original object. Returns undefined when the XRef is a proxy.*/
+fn unpack a = (
+	if classof a == XRefObject then (
+		return a.actualBaseObject
+	)
+	return a
+)
+
 rollout catboneRollout "CAT2BONE" width:392
 (
 	/*Local variables*/
@@ -39,22 +47,40 @@ rollout catboneRollout "CAT2BONE" width:392
 		progressBar 'progressBar' "ProgressBar" width:360 align:#left
 		button 'processButton' "Apply constraints" align:#right
 	)
+	
+	/*Bone filter*/
+	fn isValidBoneObject boneObject = (
+		boneObject = unpack(boneObject)
+		if boneObject == undefined then (
+			return false
+		)
+		return classof boneObject == BoneGeometry
+	)
+
+	/*Cat object filter*/
+	fn isValidCatObject catObject = (
+		catObject = unpack(catObject)
+		if catObject == undefined then (
+			return false
+		)
+		return (classof catObject == CATBone or (classof catObject == HubObject and ignoreHubs.checked == false) or (classof catObject == Dummy and ignoreDummies.checked == false))
+	)
 
 	/*Initializing drop-down lists*/
 	on catboneRollout open do
-	(
+	(				
 		print ("Initializing layer dropdown lists.")
 		if (LayerManager.count > 0) then (
-			for i = 0 to LayerManager.count - 1 do (
+			for i = 1 to LayerManager.count - 1 do (
 				layerName =  (LayerManager.getLayer i).name
 				print ("Adding layer to list: " + layerName)
 				layer = (LayerManager.getLayer i)
 				layer.nodes &layerNodes
 				
 				/*Check if we have valid objects in the layer*/
-				boneLayerObjects = for boneObject in layerNodes where (classof boneObject == BoneGeometry) collect boneObject
-				catLayerObjects = for catObject in layerNodes where (classof catObject == CATBone or (classof catObject == HubObject and ignoreHubs.checked == false) or (classof catObject == Dummy and ignoreDummies.checked == false)) collect catObject
-					
+				boneLayerObjects = for boneObject in layerNodes where isvalidBoneObject(boneObject) collect boneObject
+				catLayerObjects = for catObject in layerNodes where isValidCatObject(catObject) collect catObject
+
 				if  boneLayerObjects.count > 0 then
 				(
 					append boneLayerList layerName
@@ -138,8 +164,8 @@ rollout catboneRollout "CAT2BONE" width:392
 		)
 
 		/*Filter out invalid objects from layers*/
-		sourceNodes = for catObject in sourceNodes where (classof catObject == CATBone or (classof catObject == HubObject and ignoreHubs.checked == false) or (classof catObject == Dummy and ignoreDummies.checked == false))  collect catObject
-		targetNodes = for boneObject in targetNodes where (classof boneObject == BoneGeometry) collect boneObject
+		sourceNodes = for catObject in sourceNodes where isValidCatObject(catObject) collect catObject
+		targetNodes = for boneObject in targetNodes where isValidBoneObject(boneObject) collect boneObject
 
 		/*Check if layers are not empty after removing nodes*/
 		if sourceNodes.count == 0 or targetNodes.count == 0 then
@@ -164,7 +190,9 @@ rollout catboneRollout "CAT2BONE" width:392
 		(
 			local bestCATMatch = undefined
 			local bestScore = 100000000000000.0
-
+			
+			print(classof boneObject as string)
+			
 			/*Loop through CAT rig layer*/
 			for catObject in sourceNodes do
 			(
@@ -224,47 +252,39 @@ rollout catboneRollout "CAT2BONE" width:392
 			/*Initialize orientation constraint*/
 			orientationConstraint = Orientation_Constraint relative:true
 			orientationConstraint.appendTarget bestCATMatch 50.0
-
+			
 			rotController = boneObject.rotation.controller
-
-			/*
-			Uncomment this for debug printing.
-			print("[CAT2BONE] Rotation controller class: " + (classof rotController as string))
-			*/
-
 			if (classof rotController == Rotation_List) then
 			(
 				/*Remove all rotation constraints from the rotation list and replace them with the new orientation constraint.*/
 				for x = 1 to rotController.count do
 				(
-					/*
-					Uncomment this for debug printing.
-					print("[CAT2BONE] List element: " + (rotController[x].name as string))
-					*/
 					if (classof rotController[x].controller == Orientation_Constraint) then
 					(
 						rotController.delete x
 					)
 				)
 				rotController[rotController.count+1].controller = orientationConstraint
-				--rotController[rotController.count+1].controller.setActive 1
 				rotController.setActive rotController.count
 			)
 			else
 			(
 				/*Otherwise create a rotation list, add the default controller to the list, then add the new orientation constraint.*/
 				local rotList = Rotation_List()
-				boneObject.rotation.controller = rotList
-				rotList[2].controller = orientationConstraint
-				boneObject.rotation.controller.setActive rotList.count
-
-				/*
-				Uncomment this for debug printing.
-				for x = 1 to rotList.count do
+				if (classof boneObject == XRefObject) then
 				(
-					print("[CAT2BONE] List element: " + (rotList[x].name as string))
+					-- XRefObjects are special compared to regular Nodes, so we have to process them like this.
+					boneObject.controller.rotation.controller = rotList
+					rotList[2].controller = orientationConstraint
+					boneObject.controller.rotation.controller.setActive rotList.count
 				)
-				*/
+				else
+				(
+					-- Use old behaviour for BoneGeometry.
+					boneObject.rotation.controller = rotList
+					rotList[2].controller = orientationConstraint
+					boneObject.rotation.controller.setActive rotList.count
+				)
 			)
 			
 			/*Update progress bar*/
@@ -298,21 +318,11 @@ rollout catboneRollout "CAT2BONE" width:392
 
 			posController = boneObject.position.controller
 
-			/*
-			Uncomment this for debug printing.
-			print("[CAT2BONE] Position controller class: " + (classof posController as string))
-			*/
-		
 			if (classof posController == Position_List) then
 			(
 				/*Remove all position constraints from the position list and replace them with the new position constraint.*/
 				for x = 1 to posController.count do
 				(
-					/*
-					Uncomment this for debug printing.
-					print("[CAT2BONE] List element: " + (posController[x].name as string))
-					*/
-
 					if (classof posController[x].controller == Position_Constraint) then
 					(
 						posController.delete x
@@ -326,17 +336,20 @@ rollout catboneRollout "CAT2BONE" width:392
 			(
 				/*Otherwise create a position list, add the default controller to the list, then add the new position constraint.*/
 				local posList = Position_List()
-				boneObject.position.controller = posList
-				posList[2].controller = positionConstraint
-				boneObject.position.controller.setActive posList.count
-			--	posList[2].controller.setActive 1
-				/*
-				Uncomment this for debug printing.
-				for x = 1 to posList.count do
+				if (classof boneObject == XRefObject) then
 				(
-					print("[CAT2BONE] List element: " + (posList[x].name as string))
+					-- XRefObjects are special compared to regular Nodes, so we have to process them like this.
+					boneObject.controller.position.controller = posList
+					posList[2].controller = positionConstraint
+					boneObject.controller.position.controller.setActive posList.count
 				)
-				*/
+				else
+				(
+					-- Use old behaviour for BoneGeometry.
+					boneObject.position.controller = posList
+					posList[2].controller = positionConstraint
+					boneObject.position.controller.setActive posList.count
+				)
 			)
 
 		)
